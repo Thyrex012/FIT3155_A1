@@ -1,4 +1,4 @@
-# #Pattern matching algorithm that uses modified boyer moore
+#Completed
 def pattern_matching(txt, pat):
     ORD_START_ALPHABET = 37
     ORD_END_ALPHABET = 126
@@ -8,50 +8,67 @@ def pattern_matching(txt, pat):
     shift = len(txt) - 1
     start = -1
 
-    modfied_rx_table = preprocess_rx_table(pat, ALPHABET_SIZE, ORD_START_ALPHABET)
-    modified_good_suffix_rule = preprocess_good_suffix_rule_modified(pat)
+    p_table = preprocess_p_table(pat, ALPHABET_SIZE, ORD_START_ALPHABET)
+    modified_rx_table = modified_preprocess_rx_table(pat, ALPHABET_SIZE, ORD_START_ALPHABET)
 
-    while shift >= n - 1:
+
+    while shift  >= n - 1:
         curr_index_pat = n - 1
+
+        if start != -1:
+            curr_index_pat = start
+            start -= 1
+        
+
         while curr_index_pat >= 0 and pat[curr_index_pat] == txt[curr_index_pat + (shift - n + 1)]:
-            if start != -1:
-                curr_index_pat = start
-                start = -1
+
+            curr_index_pat -= 1
+        
+        if curr_index_pat >= 0 and curr_index_pat != n-1:
+
+            total_matches = (n-1) - (curr_index_pat+1) + 1
+            mismatch_txt_index = curr_index_pat + (shift - n + 1)
+            ord_mismtach_txt_char = ord(txt[mismatch_txt_index]) - ORD_START_ALPHABET
+
+            p = p_table[curr_index_pat+1][ord_mismtach_txt_char]
+
+            # print("J:", shift-(n-1), "K + 1", curr_index_pat+1, "P Value", p)
+
+
+            if p != -1:
+                # shift -= n - p - 1
+                shift -= total_matches - (n - p)
+                start = p - 2
             else:
-                curr_index_pat -= 1
-        if curr_index_pat >= 0:
-            mismatch_index = curr_index_pat
-            mismatch_txt_index = mismatch_index + (shift - n + 1)
-            ord_of_mismatch_txt_char = ord(txt[mismatch_txt_index]) - 37
-
-            rx_pos = modfied_rx_table[mismatch_index][ord_of_mismatch_txt_char]
-
-            p = modified_good_suffix_rule[mismatch_index+1]
-
-            if p != -1 and rx_pos != -1 and pat[rx_pos] == pat[p-1]:
-                shift -= n - p
-                start = p - 1
-            else:
-                if rx_pos != -1:
-                    shift -= n - rx_pos
+                leftmost_mismatch_to_right_of_k = modified_rx_table[curr_index_pat][ord_mismtach_txt_char]
+                if leftmost_mismatch_to_right_of_k != -1:
+                    shift -= leftmost_mismatch_to_right_of_k - curr_index_pat
                     start = -1
                 else:
                     shift = mismatch_txt_index - 1
                     start = -1
+        elif curr_index_pat == n-1:
+            shift -= 1
+            start = -1
         else:
             #Pattern has been found
+            # print("J:", shift-(n-1), "K + 1", curr_index_pat+1, "P Value", p_table[0])
             start_point_match = shift-n+1
             result.append(start_point_match)
             #This would mean that there exists a beta starting at index 0 of pat
-            if modified_good_suffix_rule[0] != -1:
-                shift -= n - modified_good_suffix_rule[0]
-                start = modified_good_suffix_rule[0] -1
+            if p_table[0] != -1:
+                shift -= n - (n - p_table[0])
+                start = p_table[0] -1
             #This would mean no beta exist starting at index point 0 of pat
             else:
                 shift -= n
                 start = -1
-
+    
     return result
+
+#######################
+# Preprocess Functions
+#######################
 
 def z_algorithm_for_boyer_moore(pat):
     str = pat
@@ -83,73 +100,51 @@ def z_algorithm_for_boyer_moore(pat):
 
     return z_array
 
-#######################
-# Preprocess Functions
-#######################
+#COMPLETED
+def preprocess_p_table(pat, ALPHABET_SIZE, ORD_START_ALPHABET):
+    p_table = []
+    m = len(pat)
 
-# def preprocess_bad_char_rule_modified(pat, ALPHABET_SIZE, START_ALPHABET):
-#     # Creates an Rk(x) table where for each character x, 
-#     # store the leftmost position of occurances of x in pat to the right of k
-#     table = []
-#     prev_row = [-1 for _ in range(ALPHABET_SIZE)]
-#     for i in range(len(pat)-1, -1, -1):
-#         table.append(prev_row.copy())
-#         prev_char_index = ord(pat[i]) - START_ALPHABET
-#         prev_row[prev_char_index] = i
-#     table.reverse()
-#     return table
+    reversed_pat = pat[::-1]
+    Z = z_algorithm_for_boyer_moore(reversed_pat)
+    z_suffix = Z[::-1]
 
-def preprocess_rx_table(pat, ALPHABET_SIZE, START_ALPHABET):
-    # Creates an Rx(k) table where for each character x, 
-    # store the rightmost position of occurances of x in pat to the right of k
+    p_table.append(-1)
+
+    for i in range(1, m):
+        p_table.append([])
+        for j in range(ALPHABET_SIZE):
+            p_table[i].append(-1)
+    
+    for j in range(m-1):
+        L = z_suffix[j]
+        if L == 0:
+            continue
+        start = j - L + 1
+        if start == 0:
+            p_table[0] = m - L
+            continue
+        p_value = m - L
+        char_before_p = pat[m-L-1]
+        p_table[start][ord(char_before_p)-ORD_START_ALPHABET] = p_value
+
+    return p_table
+
+#Completed
+def modified_preprocess_rx_table(pat, ALPHABET_SIZE, START_ALPHABET):
+    # Creates an Rx(k) table where for each character x,
+    # store the leftmost position of occurrences of x in pat to the right of k
     table = []
     prev_row = [-1 for _ in range(ALPHABET_SIZE)]
-    for i in range(len(pat)-1, -1, -1):
+    for i in range(len(pat) - 1, -1, -1):
         table.append(prev_row.copy())
         prev_char_index = ord(pat[i]) - START_ALPHABET
-        if prev_row[prev_char_index] == -1:
-            prev_row[prev_char_index] = i
+        prev_row[prev_char_index] = i   # always overwrite
     table.reverse()
     return table
 
-def preprocess_good_suffix_rule_modified(pat):
-
-    good_suffix = []
-
-    #Getting the z suffix of the pattern
-    reversed_pat = pat[::-1]
-    z_arr = z_algorithm_for_boyer_moore(reversed_pat)
-    z_suffix = z_arr[::-1]
-
-    for j in range(len(pat)+1):
-        good_suffix.append(-1)
-    
-    for i in range(len(pat)-1, -1, -1):    # backwards for leftmost p
-        L = z_suffix[i]
-        if L > 0:
-            p = len(pat) - L       # where beta (suffix) starts
-            k1 = i - L + 1         # alpha start = k+1
-            good_suffix[k1] = p    # when mismatch at k=k1-1, shift to p
-
-    # print("Z Suffix:", z_suffix)
-    # print("Good Suffix", good_suffix)
-
-    return good_suffix
-
-txt = "babbaababaababaababab"
-pat = "abcdeabcdeabcde"
-pat1 = "cabbaabb"
-pat2 = "aababaabab"
-# preprocess_bad_char_rule_modified(pat, 126-37+1, ord('%'))
-# preprocess_good_suffix_rule_modified(pat)
-# preprocess_good_suffix_rule_modified(pat1)
-# preprocess_good_suffix_rule_modified(pat2)
-# print(preprocess_bad_char_rule_modified(pat1, 5, ord('a')))
-# print(pattern_matching(txt, pat2))
-# print(pattern_matching("abcabcabc","abc"))
-# preprocess_good_suffix_rule_modified("aaa")
-# preprocess_good_suffix_rule_modified("abcab")
-# print(pattern_matching("abcxxabcababcab", "abcab"))
-pattern_matching("abbabbaabba", "abba")
-# preprocess_good_suffix_rule_modified("acaaa")
-# print(preprocess_rx_table("aacab", 3, ord('a')))
+# print((z_algorithm_for_boyer_moore(pat1[::-1]))[::-1])
+# print(preprocess_p_table("aaaaaa", 2, ord('a')))
+# print(pattern_matching("aaaaabaaaaaaaaaabaaaaa","aaaaabaaaaa"))
+# print(pattern_matching("babbaababaababaababab","aababaabab"))
+# print(modified_preprocess_rx_table("aadabcd", 4, ord('a')))
