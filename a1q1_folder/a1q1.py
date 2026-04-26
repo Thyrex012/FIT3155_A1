@@ -133,8 +133,7 @@ def pattern_matching(txt, pat):
                 shift -= n
                 start = -1
     
-    # return result, runlog
-    return result
+    return result, runlog
 
 #######################
 # Preprocess Functions
@@ -253,30 +252,30 @@ def modified_preprocess_rx_table(pat, ALPHABET_SIZE, START_ALPHABET):
     table.reverse()
     return table
 
-# def read_file(file_path: str) -> str:
-#     f = open(file_path, 'r')
-#     content = f.read()
-#     f.close()
-#     return content.rstrip('\n')
+def read_file(file_path: str) -> str:
+    f = open(file_path, 'r')
+    content = f.read()
+    f.close()
+    return content.rstrip('\n')
 
-# if __name__ == '__main__':
-#     #retrieve the file paths from the commandline arguments
-#     _, filename1, filename2 = sys.argv
-#     print("Number of arguments passed:", len(sys.argv))
+if __name__ == '__main__':
+    #retrieve the file paths from the commandline arguments
+    _, filename1, filename2 = sys.argv
+    print("Number of arguments passed:", len(sys.argv))
 
-#     # Read the text and pattern strings.
-#     txt = read_file(filename1)
-#     pat = read_file(filename2)
+    # Read the text and pattern strings.
+    txt = read_file(filename1)
+    pat = read_file(filename2)
 
-#     print("txt is", txt)
-#     print("pat is", pat)
+    print("txt is", txt)
+    print("pat is", pat)
 
-#     result, runlog = pattern_matching(txt, pat)
+    result, runlog = pattern_matching(txt, pat)
 
-#     with open('output_a1q1.txt', 'w') as f:
-#         for pos in result:
-#             f.write(str(pos+1) + '\n')
+    with open('output_a1q1.txt', 'w') as f:
+        for pos in result:
+            f.write(str(pos+1) + '\n')
     
-#     with open("runlog_a1q1.txt", 'w') as f:
-#         for j, k_plus_one, p in runlog:
-#             f.write(str(j) + " " + str(k_plus_one) + " " + str(p) + "\n")
+    with open("runlog_a1q1.txt", 'w') as f:
+        for j, k_plus_one, p in runlog:
+            f.write(str(j) + " " + str(k_plus_one) + " " + str(p) + "\n")
