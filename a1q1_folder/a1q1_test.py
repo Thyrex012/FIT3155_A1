@@ -151,4 +151,7 @@ if __name__ == "__main__":
 # print(pattern_matching("aaaaabaaaaaaaaaabaaaaa","aaaaabaaaaa"))
 # print(pattern_matching("babbaababaababaababab","aababaabab"))
 # print(pattern_matching("zabcdeabcdeabcdez", "abcde"))
-# print(modified_preprocess_rx_table("aadabcd", 4, ord('a')))
+# print(testing_pattern_matching("abcabcabc", "abc"))
+# print(testing_preprocess_p_table("aba",2,ord('a')))
+# print(testing_pattern_matching("ababa", "aba"))
+# print(testing_pattern_matching("cbacbbbaaaaaacabbccbb", "ab"))
