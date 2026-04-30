@@ -59,27 +59,27 @@ def pattern_matching(txt, pat):
     # The while loop stops when our shift value ends at n-1 as shifting leftwards past 
     # this will make the pattern go out of bound.
     while shift  >= n - 1:
-        curr_index_pat = n - 1
+        k = n - 1
 
         # Check to see if there is a start value from the previous iteration so that we can skip
         if start != -1:
-            curr_index_pat = start
+            k = start
             start -= 1
         
-        while curr_index_pat >= 0 and pat[curr_index_pat] == txt[curr_index_pat + (shift - n + 1)]:
+        while k >= 0 and pat[k] == txt[k + (shift - n + 1)]:
 
-            curr_index_pat -= 1
+            k -= 1
         
-        if curr_index_pat >= 0 and curr_index_pat != n-1:
-
-            total_matches = (n-1) - (curr_index_pat+1) + 1
-            mismatch_txt_index = curr_index_pat + (shift - n + 1)
+        if k >= 0 and k != n-1:
+            #We can think of total_matches as the length of pat[k+1...n-1] that matches with the associated txt
+            total_matches = (n-1) - (k+1) + 1
+            mismatch_txt_index = k + (shift - n + 1)
             mismtach_txt_char = ord(txt[mismatch_txt_index]) - ORD_START_ALPHABET
 
-            p = p_table[curr_index_pat+1][mismtach_txt_char]
+            p = p_table[k+1][mismtach_txt_char]
 
             # Log this iteration: j, k+1, p
-            runlog.append((shift-(n-1), curr_index_pat + 1, p))
+            runlog.append((shift-(n-1), k + 1, p))
 
             if p != -1:
                 # p value exists that satisfies condition 1 and 2 so we can shift the pattern to the left so that
@@ -92,9 +92,9 @@ def pattern_matching(txt, pat):
                 # the last character of pat, reasoning why this is safe is discussed in the report.
                 shift = mismatch_txt_index
                 start = -1
-        elif curr_index_pat == n-1:
+        elif k == n-1:
             # Mismatch at the last character in pattern, can shift pat by 1 leftwards.
-            runlog.append((shift-(n-1), curr_index_pat + 1, -1))
+            runlog.append((shift-(n-1), k + 1, -1))
             shift -= 1
             start = -1
         else:
@@ -105,24 +105,24 @@ def pattern_matching(txt, pat):
             if shift > n - 1:
                 #Since its a full match we'll need to ensure that we can access the text index because if
                 #shift = n-1 then that means that the txt index can potentially point past index 0 which is undefined
-                txt_index = curr_index_pat + (shift - n + 1)
+                txt_index = k + (shift - n + 1)
                 textChar_index = ord(txt[txt_index]) - ORD_START_ALPHABET
                 if p_table[0][textChar_index] != -1:
+                    # This would mean that there exists a beta starting at index 0 of pat that also 
+                    # matches with the text character
                     # Log this iteration: k+1 is 0 on a full match; p is p_table[0][textChar_index].
-                    runlog.append((shift-(n-1), curr_index_pat+1, p_table[0][textChar_index]))
-                    #This would mean that there exists a beta starting at index 0 of pat that also 
-                    #matches with the text character
+                    runlog.append((shift-(n-1), k+1, p_table[0][textChar_index]))
                     shift -= n - (n - p_table[0][textChar_index])
                     start = p_table[0][textChar_index] - 1
                 else:
+                    # This would mean no beta exist starting at index point 0 of pat
                     # Log this iteration: k+1 is 0 on a full match; p is -1 to represent no p.
-                    runlog.append((shift-(n-1), curr_index_pat+1, -1))
-                    #This would mean no beta exist starting at index point 0 of pat
+                    runlog.append((shift-(n-1), k+1, -1))
                     shift -= n
                     start = -1
             else:
                 # Log this iteration: k+1 is 0 on a full match; p is -1 to represent no p.
-                runlog.append((shift-(n-1), curr_index_pat+1, -1))
+                runlog.append((shift-(n-1), k+1, -1))
                 shift -= n
                 start = -1
     
@@ -201,7 +201,10 @@ def preprocess_p_table(pat, ALPHABET_SIZE, ORD_START_ALPHABET):
         for j in range(ALPHABET_SIZE):
             p_table[i].append(-1)
     
-    # We loop forward
+    # We loop forward because when we go foward in the z suffix array for example pat aaaaa it will return [1,2,3,4,-1]
+    # As we go forward the length of the z suffix boxes gets larger which means that the p value becomes smaller/more leftwards.
+    # With this if these z suffix boxes corresponds to the same start point and the p-1 character are the same, it will end up
+    # getting overwritten with the left most p.
     for j in range(m-1):
         L = z_suffix[j]
         if L == 0:
